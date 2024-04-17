@@ -2,7 +2,7 @@ import pandas as pd
 import torch            # Neural Network
 import torch.nn as nn
 import torch.nn.functional as F           # Activation Functions
-from sklearn.preprocessing import MinMaxScaler
+from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 #           Data set breakdown:
@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 data = pd.read_csv("diabetes_binary_health_indicators.csv", header = 0)
 
 # DEBUG
+# data = pd.read_csv("diabetes_binary_5050split_health_indicators_.csv", header = 0)
 # data = pd.read_csv("test.csv", header = 0)
 
 '''
@@ -63,12 +64,14 @@ class nnModel(nn.Module):
     # Input (21) --> h1 (15) --> h2(8) --> output(2)
     def __init__(self, input = 21, h1 = 15, h2 = 8, output = 2):
         super().__init__()      # Instantiate
+        self.dropout = nn.Dropout(0.1)              # Drop 10% of the nodes
         self.node1FC = nn.Linear(input, h1)         # Input layer
         self.node2FC = nn.Linear(h1, h2)            # Hidden layer
         self.out     = nn.Linear(h2, output)        # Output layer
 
     # Currently using relu activation function, should consider using softmax
     def forward(self, x):
+        x = self.dropout(x)                 # Dropout specified in constructor
         # Start at input, run through hidden layers
         x = F.relu(self.node1FC(x))         # Input --> h1
         x = F.relu(self.node2FC(x))         # h1    --> output
@@ -79,17 +82,19 @@ class nnModel(nn.Module):
     pass
 # Class END
 
-# *** Normalizing data changes dataFrame to Numpy, thus, labels are lost ***
-scaler = MinMaxScaler(feature_range = (0, 1))
-#data = scaler.fit_transform(data)           # Normalize data
+hard_debug = False           # To see each guess
+debug      = True            # Debug var.
+
+# Normalize all data points 
+data = preprocessing.normalize(data)
+data = pd.DataFrame(data)       # Change back to DataFrame for simplicity
 
 # Get y values
-y_actual = data.Diabetes_binary
-
-# Get the size of the dataSet. Will be usefull later
-y_size = y_actual.shape[0]
-
+y_actual = data.iloc[:, 0]
 y_actual = y_actual.values      # Convert to numpy
+# After normalizing, 1 has been turn to 0.___ which will be
+# seen as a 0 to the computer. We must change all these values, back to 1
+y_actual = y_actual.astype(bool).astype(int)
 
 # Get x values
 x_values = data.iloc[:, 1:]
@@ -144,16 +149,25 @@ for i in range(epoch):
 # Evaluate model without back propagation. 
 # NOTE: this with is not neccessary, however, it would give
 # us insight into how close the neural network to our training
-with torch.no_grad():
-    # Evaluate our model using given (x_test) and the
-    # predicted values is (y_eval). 
-    y_eval = model.forward(x_test)
+if (debug):
+    with torch.no_grad():
+        # Evaluate our model using given (x_test) and the
+        # predicted values is (y_eval). 
+        y_eval = model.forward(x_test)
 
-    # Compare results between actual and predicted
-    loss = error(y_eval, y_test)
-print(loss)     # How close are we with our original training
+        # Compare results between actual and predicted
+        loss = error(y_eval, y_test)
+    print("Loss: " + str(loss))     # How close are we with our original training
+# if, END
 
-correct = 0
+# Get the size of the testing set
+y_size = x_test.shape[0]
+
+correct = 0     # Count correct predictions
+
+# Debug Variables
+zero = 0        # How many zeros were predicted
+one = 0         # How many ones were predicted
 # Find out how many correct it got
 with torch.no_grad():
     # Where i is index and value is the data set (all 21 features)
@@ -161,13 +175,26 @@ with torch.no_grad():
         # Send data through model
         y_val = model.forward(value)
 
-        # print("Actual: %i\t Predicted: %i" % (y_test[i], y_val.argmax().item()))
+        # Usefull to see what is actually being guessed
+        if (hard_debug and debug):
+            print("Actual: %i\t Predicted: %i" % (y_test[i], y_val.argmax().item()))
+            pass
 
         # Our predicted value is the value from the list that is the largest
         # So, find the largest value, then return the index of that value.
         # Effectively, that is our prediction
         if (y_val.argmax().item() == y_test[i]):
             correct += 1
+
+        # Count what was guessed
+        if (debug):
+            if (y_val.argmax().item() == 0):
+                zero += 1
+            else: 
+                one += 1
     # For, END
 print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 100)))
 
+# How many did it guess with and without diabetes
+if (debug):
+    print("Found %i ones, and %i zeros." % (one, zero))
