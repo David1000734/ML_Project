@@ -9,38 +9,15 @@ from sklearn.model_selection import train_test_split
 # https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators
 
 # *************** Main ***************
-# Labels are at index 0
-data = pd.read_csv("diabetes_binary_health_indicators.csv", header = 0)
-
-# DEBUG
-# data = pd.read_csv("diabetes_binary_5050split_health_indicators_.csv", header = 0)
-# data = pd.read_csv("test.csv", header = 0)
-
-'''
-Data set will contain 21 features with a mixture of integers and binary 
-along with 253,680 data points.
-
-            *** Data sets ***
-* diabetes_binary_5050split: An equal split of people with and without diabetes
-0: No diabetes
-1: Pre-diabetes or diabetes
-
-* diabetes_binary: Clean dataset where diabetes has 2 classes
-0: No diabetes
-1: Pre-diabetes or diabetes
-
-* diabetes_012: A clean dataset where diabetes has 3 classes
-0: No diabetes
-1: Prediabetes
-2: Diabetes
-
-'''
+# List of avalible data files
+# NOTE: Will be able to keep track of the 3 output data set, as long
+# as "_012_" is in the file name. No other files should have that
+# substring in its name anywhere unless it also has 3 outputs.
+fileName = ["diabetes_binary_health_indicators.csv", 
+            "diabetes_binary_5050split_health_indicators_.csv",
+            "diabetes_012_health_indicators.csv"]
 
 '''          DEBUG section, remove later
-scaler = MinMaxScaler(feature_range = (0, 1))
-data = scaler.fit_transform(data)           # Normalize data
-print(scaler.inverse_transform(data))       # Un-normalize data
-
 * Video reference for the code below
 https://www.youtube.com/watch?v=JHWqWIoac2I
 *** Should change parts of this code ***
@@ -48,21 +25,26 @@ https://www.youtube.com/watch?v=JHWqWIoac2I
 * Consideration, will K-Folds be neccessary or will 1
 run be sufficient?
 
-* Should there be a user input section where one of the three avalible
-data types can be picked?
-
 * Consider adding a readme that can detail the specifics of each dataset
 and other relevent information. 
 
-* Should definelty do some normalization and could possible improve accuracy.
-********* Current calcuations are done WITHOUT normalization *********
+* Allow to test (NOT train) model on the other two datasets
 '''
 
 # Create neural network class
 class nnModel(nn.Module):
+    """
+    Class for the neural network...
+    """
 
     # Input (21) --> h1 (15) --> h2(8) --> output(2)
     def __init__(self, input = 21, h1 = 15, h2 = 8, output = 2):
+        """
+        Constructor. NeuralNetwork will have 2 hidden layers and take
+        21 features as input and output 2 or 3 depending on the dataset.
+        Will be utilizing a dropout of 10% for the provided data and
+        linear as the input function
+        """
         super().__init__()      # Instantiate
         self.dropout = nn.Dropout(0.1)              # Drop 10% of the nodes
         self.node1FC = nn.Linear(input, h1)         # Input layer
@@ -71,6 +53,16 @@ class nnModel(nn.Module):
 
     # Currently using relu activation function, should consider using softmax
     def forward(self, x):
+        """
+        Function for train/testing. Will be utilizing relu as the 
+        activation function as softmax, ELU, and others have 
+        worst or similar performance.
+        
+        param x: The dataset to be trained or tested.
+
+        return: Will output 2 or 3 values as it's prediciton. The one
+        with the highest value is chosen. 
+        """
         x = self.dropout(x)                 # Dropout specified in constructor
         # Start at input, run through hidden layers
         x = F.relu(self.node1FC(x))         # Input --> h1
@@ -82,21 +74,131 @@ class nnModel(nn.Module):
     pass
 # Class END
 
+def print_Menu():
+
+    """
+    Simple print function, will print the user input menu.
+    NOTE: Only prints the menu and does not actually ask for
+    user input nor does it do a loop.
+    """
+    # 0: Diabeties health Indicators
+    print("0:\t\t Diabeties Health Data")
+    # 1: Diabeties 50/50 split
+    print("1:\t\t Diabeties 50/50 Split")
+    # 2: Diabeties, 0 no diabeties, 1 pre-diabeties, 2 diabetes
+    print("2:\t\t Diabetes, Yes, No, or Pre-Diabetes")
+
+    # Explain dataset
+    print("Details:\t Explanation of each data set")
+
+    # Exit
+    print("Exit:\t\t End Program")
+# printMenu, END
+
+def print_Details():
+    """
+    Simple print function, will explain each dataset.
+
+    For the sake of time and efficiency, we will be hard coding the
+    number of features and data points to avoid reading each file. 
+    """
+    # Header, for all data sets
+    print("\n\nEach dataset contains a variety of information regarding " +
+          "the person's lifestyle, medical history, and other " + 
+          "sensative information. This information range from gender, " +
+          "Smoker, Physical Activity, Age, etc.")
+    print("All data recieved is gather via surveys by CDC in 2015. \n\n")
+    
+    # Diabetes Heath data
+    print("\t\t Diabeties Health Data: "\
+          "21 features and 253,680 data points")
+    print("The target variable will either be a " + 
+          "0 (no diabetes) or 1 (pre-diabetes or diabetes). \n")
+    
+    # 50/50 Diabetes
+    print("\t\t Diabetes 50/50 Split: "\
+          "21 features and 70,692 data points")
+    print("The target variable will either be a " + 
+          "0 (no diabetes) or 1 (pre-diabetes or diabetes). \n")
+    
+    # 0, 1, or 2 Diabetes
+    print("\t\t Diabetes, Yes, No, or Pre-Diabetes: "\
+          "21 features and 253,680 data points")
+    print("The target variable will be 0 (no diabetes) " + 
+          "1 (pre-diabetes) or 2 (diabetes). \n")
+# printDetails, END
+
+# Initilize data set name
+data = None
+
+# How many outputs
+out_val = 2
+
+# Input menu for data sets
+while (True): 
+    bool_exit = False       # Should we exit the program?
+    print_Menu()            # print our menu
+
+    # Input section
+    menuInput = input("Please select an option: ")
+
+    # Processing section
+    try:
+        # All inputs should be able to be converted to string
+        menuInput = str(menuInput)
+
+        # Lowercase all letters
+        menuInput = menuInput.lower()
+        
+        # Check which menu option was picked
+        if (menuInput == "exit"):
+            bool_exit = True
+        elif (menuInput == "details" or menuInput == "detail"):
+            print_Details()
+        # IF none of the strings are selected, then it must be a number
+        elif (int(menuInput) or int(menuInput) == 0):
+            # We found an int
+            menuInput = int(menuInput)
+
+            # Valid number is found, read the file
+            if ((menuInput < len(fileName)) and (menuInput > -1)):
+                # Labels are at index 0.
+                data = pd.read_csv(fileName[menuInput], header = 0)
+
+                # Our dataset with '_012_" needs 3 values as output
+                if "_012_" in fileName[menuInput]:
+                    out_val = 3
+
+                # Exit loop
+                break
+            else:
+                # Number is not within range
+                print("\tError: Please pick a number within range.")
+        else:
+            # Else is not possible?...
+            pass
+
+    except:
+        # If it is not a number, then whatever was inputed was invalid
+        print("\tError: Invalid Option")
+
+    # Exit out here to avoid I/O operation on closed file error
+    if (bool_exit):
+        exit(0)
+
+    print()         # Formating
+# While, END
+
 hard_debug = False           # To see each guess
 debug      = True            # Debug var.
-
-# Normalize all data points 
-data = preprocessing.normalize(data)
-data = pd.DataFrame(data)       # Change back to DataFrame for simplicity
 
 # Get y values
 y_actual = data.iloc[:, 0]
 y_actual = y_actual.values      # Convert to numpy
-# After normalizing, 1 has been turn to 0.___ which will be
-# seen as a 0 to the computer. We must change all these values, back to 1
-y_actual = y_actual.astype(bool).astype(int)
+# No point normalizing the y values in the first place
 
-# Get x values
+# Get x values, only normalize x values
+x_values = preprocessing.normalize(data.iloc[:, 1:])
 x_values = data.iloc[:, 1:]
 x_values = x_values.values      # Convert to numpy
 
@@ -104,7 +206,7 @@ x_values = x_values.values      # Convert to numpy
 torch.manual_seed(30)       # Not neccesary. Just a random_seed
 
 # Create out model
-model = nnModel()
+model = nnModel(output = out_val)
 
 # Split up the data sets
 x_train, x_test, y_train, y_test = \
@@ -168,6 +270,7 @@ correct = 0     # Count correct predictions
 # Debug Variables
 zero = 0        # How many zeros were predicted
 one = 0         # How many ones were predicted
+two = 0         # How many twos were predicted
 # Find out how many correct it got
 with torch.no_grad():
     # Where i is index and value is the data set (all 21 features)
@@ -190,11 +293,13 @@ with torch.no_grad():
         if (debug):
             if (y_val.argmax().item() == 0):
                 zero += 1
-            else: 
+            elif (y_val.argmax().item() == 1): 
                 one += 1
+            else:
+                two += 1
     # For, END
 print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 100)))
 
 # How many did it guess with and without diabetes
 if (debug):
-    print("Found %i ones, and %i zeros." % (one, zero))
+    print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
