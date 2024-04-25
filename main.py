@@ -348,20 +348,20 @@ if (debug):
 
 
 #show x values before and after normalization 
-plt.figure(figsize=(12,6))
-fig,axs= plt.subplots(2,2)
-axs[0,0].hist(x_values_before.values.flatten(), bins= 10, color = 'blue', alpha = 0.7)
+plt.figure(figsize=(12, 8))
+plt.subplot(2,2,1)
+plt.hist(x_values_before.values.flatten(), bins= 10, color = 'blue', alpha = 0.7)
 plt.title('Histogram of X values before Normalization')
 plt.xlabel('X Values')
 plt.ylabel('Frequency')
-plt.subplot(1,2,2)
+plt.subplot(2,2,2)
 plt.hist(x_values.flatten(), bins= 10, color= 'red', alpha = 0.7)
 plt.title('Histogram of X values after Normalization')
 plt.xlabel('X Values')
 plt.ylabel('Frequency')
 
 # graph the training and validation accuracies for each iteration 
-plt.subplot(1,2,1)
+plt.subplot(2,2,3)
 plt.plot(range(1, epoch + 1), train_accuracy_values, label='Training Accuracy', linestyle='-')
 plt.plot(range(1, epoch + 1), val_accuracy_values, label='Validation Accuracy', linestyle='--')
 plt.xlabel('Epoch')
@@ -373,11 +373,13 @@ plt.legend()
 loss_train_values = [tensor.detach().numpy() for tensor in train_loss_values]
 loss_val_values= [tensor.detach().numpy() for tensor in val_loss_values]
 #plot training and validation loss
-plt.subplot(1,2,2)
+plt.subplot(2,2,4)
 plt.plot(range(1, epoch + 1), loss_train_values, label='Training Loss', linestyle='-')
 plt.plot(range(1, epoch + 1), loss_val_values, label='Validation Loss', linestyle='--')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
+
+plt.tight_layout()
 plt.show()
