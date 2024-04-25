@@ -215,10 +215,11 @@ y_actual = y_actual.values      # Convert to numpy
 # No point normalizing the y values in the first place
 
 # Get x values, only normalize x values
-x_values = data.iloc[:, 1:]
+x_values_before = data.iloc[:, 1:]
 #x_values = x_values.values      # Convert to numpy
-x_values = preprocessing.normalize(x_values)
+x_values = preprocessing.normalize(x_values_before)
 print("x_val: " + str(x_values.shape))
+
 
 # Keep things consistent for now
 #torch.manual_seed(60)       # Not neccesary. Just a random_seed
@@ -344,6 +345,20 @@ print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 1
 # How many did it guess with and without diabetes
 if (debug):
     print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
+
+
+#show x values before and after normalization 
+plt.figure(figsize=(12,6))
+fig,axs= plt.subplots(2,2)
+axs[0,0].hist(x_values_before.values.flatten(), bins= 10, color = 'blue', alpha = 0.7)
+plt.title('Histogram of X values before Normalization')
+plt.xlabel('X Values')
+plt.ylabel('Frequency')
+plt.subplot(1,2,2)
+plt.hist(x_values.flatten(), bins= 10, color= 'red', alpha = 0.7)
+plt.title('Histogram of X values after Normalization')
+plt.xlabel('X Values')
+plt.ylabel('Frequency')
 
 # graph the training and validation accuracies for each iteration 
 plt.subplot(1,2,1)
