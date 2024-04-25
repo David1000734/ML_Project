@@ -86,7 +86,6 @@ def calculate_accuracy(predictions, targets):
     accuracy = correct / len(targets)
     return accuracy
 
-
 def print_Menu():
 
     """
@@ -334,8 +333,6 @@ with torch.no_grad():
     # For, END
 print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 100)))
 
-
-
 # How many did it guess with and without diabetes
 if (debug):
     print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
@@ -349,7 +346,6 @@ plt.ylabel('Accuracy')
 plt.title('Training and Validation Accuracy')
 plt.legend()
 
-
 #remove grad from loss values 
 loss_train_values = [tensor.detach().numpy() for tensor in train_loss_values]
 loss_val_values= [tensor.detach().numpy() for tensor in val_loss_values]
@@ -362,4 +358,3 @@ plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
-
