@@ -38,7 +38,7 @@ class nnModel(nn.Module):
     """
 
     # Input (21) --> h1 (15) --> h2(8) --> output(2)
-    def __init__(self, input = 21, h1 = 15, h2 = 8, output = 2):
+    def __init__(self, input = 21, h1 = 15, h2 = 10, h3= 5, output = 1):
         """
         Constructor. NeuralNetwork will have 2 hidden layers and take
         21 features as input and output 2 or 3 depending on the dataset.
@@ -46,10 +46,11 @@ class nnModel(nn.Module):
         linear as the input function
         """
         super().__init__()      # Instantiate
-        self.dropout = nn.Dropout(0.1)              # Drop 10% of the nodes
+        #self.dropout = nn.Dropout(0)              # Drop 10% of the nodes
         self.node1FC = nn.Linear(input, h1)         # Input layer
         self.node2FC = nn.Linear(h1, h2)            # Hidden layer
-        self.out     = nn.Linear(h2, output)        # Output layer
+        self.node3FC = nn.Linear(h2, h3)             # Hidden layer
+        self.out     = nn.Linear(h3, output)        # Output layer
 
     # Currently using relu activation function, should consider using softmax
     def forward(self, x):
@@ -63,10 +64,12 @@ class nnModel(nn.Module):
         return: Will output 2 or 3 values as it's prediciton. The one
         with the highest value is chosen. 
         """
-        x = self.dropout(x)                 # Dropout specified in constructor
+        #x = self.dropout(x)                 # Dropout specified in constructor
         # Start at input, run through hidden layers
+        #mish is better than relu
         x = F.relu(self.node1FC(x))         # Input --> h1
         x = F.relu(self.node2FC(x))         # h1    --> output
+        x = F.relu(self.node3FC(x))         # h1    --> output
         
         # Output
         x = self.out(x)         # output -->
@@ -192,18 +195,21 @@ while (True):
 hard_debug = False           # To see each guess
 debug      = True            # Debug var.
 
+data = data.sample(frac=1)          # shuffle data
+
 # Get y values
 y_actual = data.iloc[:, 0]
 y_actual = y_actual.values      # Convert to numpy
 # No point normalizing the y values in the first place
 
 # Get x values, only normalize x values
-x_values = preprocessing.normalize(data.iloc[:, 1:])
 x_values = data.iloc[:, 1:]
-x_values = x_values.values      # Convert to numpy
+#x_values = x_values.values      # Convert to numpy
+x_values = preprocessing.normalize(x_values)
+print("x_val: " + str(x_values.shape))
 
 # Keep things consistent for now
-torch.manual_seed(30)       # Not neccesary. Just a random_seed
+#torch.manual_seed(60)       # Not neccesary. Just a random_seed
 
 # Create out model
 model = nnModel(output = out_val)
@@ -224,16 +230,25 @@ y_train = torch.LongTensor(y_train)
 
 # Find error
 error = nn.CrossEntropyLoss()
+#error = nn.MSELoss()
 
 # Optimizer, using Adam
-opt = torch.optim.Adam(model.parameters(), lr = 0.001)
+# Grad Funct = AddmmBackward0
+opt = torch.optim.Adam(model.parameters(), lr = .01)
+#opt = torch.optim.ASGD(model.parameters(), lr=0.01)
 
 # 100 iterations for now. For this dataset, realisticly we will need
 # a much larger epoch
-epoch = 100
+epoch = 500
 for i in range(epoch):
     # Start training model
     y_pred = model.forward(x_train)
+
+    #print(y_pred)
+    #print(y_train)
+    #print(y_pred.values)
+    # copy = y_pred[0]
+    # print(copy)
 
     # Measure loss. predicted vs. actual
     loss = error(y_pred, y_train)
@@ -243,9 +258,9 @@ for i in range(epoch):
         print("Epoch: %i \t loss: %0.8f" % (i, loss))
 
     # Tweak some weights and bias
-    opt.zero_grad()      # Back propagation
-    loss.backward()      
-    opt.step()
+    opt.zero_grad()      # Clear/ Reset Gradient
+    loss.backward()      # Back Prop
+    opt.step()           # Updates params/ weights
 # For, END
 
 # Evaluate model without back propagation. 
