@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F           # Activation Functions
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
 
 #           Data set breakdown:
 # https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators
@@ -76,6 +78,16 @@ class nnModel(nn.Module):
         return x
     pass
 # Class END
+
+#Function to calculate accuracy using predictions and the target labels 
+def calculate_accuracy(predictions, targets):
+    # Convert predictions to class labels (indices of the maximum value)
+    predicted_labels = predictions.argmax(dim=1)
+    # Compare with target labels 
+    correct = (predicted_labels == targets).sum().item()
+    # Compute accuracy
+    accuracy = correct / len(targets)
+    return accuracy
 
 def print_Menu():
 
@@ -237,6 +249,12 @@ error = nn.CrossEntropyLoss()
 opt = torch.optim.Adam(model.parameters(), lr = .01)
 #opt = torch.optim.ASGD(model.parameters(), lr=0.01)
 
+#arrays to keep track of acccuracy values for each iteration 
+train_accuracy_values = []
+val_accuracy_values = []
+train_loss_values = []
+val_loss_values = [] 
+
 # 100 iterations for now. For this dataset, realisticly we will need
 # a much larger epoch
 epoch = 500
@@ -244,14 +262,22 @@ for i in range(epoch):
     # Start training model
     y_pred = model.forward(x_train)
 
-    #print(y_pred)
-    #print(y_train)
-    #print(y_pred.values)
-    # copy = y_pred[0]
-    # print(copy)
+    y_val = model.forward(x_test)
+     # Compute training and validation accuracy
+    train_accuracy = calculate_accuracy(y_pred, y_train)
+    val_accuracy = calculate_accuracy(y_val, y_test)
+    #add the accuracy values to an array 
+    train_accuracy_values.append(train_accuracy)
+    val_accuracy_values.append(val_accuracy)
 
     # Measure loss. predicted vs. actual
     loss = error(y_pred, y_train)
+    #validaton loss 
+    val_loss = error(y_val, y_test)
+    # add loss values to an array
+    train_loss_values.append(loss)
+    val_loss_values.append(val_loss)
+
 
     # Print every 10 iterations
     if (i % 10 == 0):
@@ -318,3 +344,25 @@ print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 1
 # How many did it guess with and without diabetes
 if (debug):
     print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
+
+# graph the training and validation accuracies for each iteration 
+plt.subplot(1,2,1)
+plt.plot(range(1, epoch + 1), train_accuracy_values, label='Training Accuracy', linestyle='-')
+plt.plot(range(1, epoch + 1), val_accuracy_values, label='Validation Accuracy', linestyle='--')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+
+#remove grad from loss values 
+loss_train_values = [tensor.detach().numpy() for tensor in train_loss_values]
+loss_val_values= [tensor.detach().numpy() for tensor in val_loss_values]
+#plot training and validation loss
+plt.subplot(1,2,2)
+plt.plot(range(1, epoch + 1), loss_train_values, label='Training Loss', linestyle='-')
+plt.plot(range(1, epoch + 1), loss_val_values, label='Validation Loss', linestyle='--')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+plt.show()
