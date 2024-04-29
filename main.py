@@ -346,6 +346,19 @@ print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 1
 if (debug):
     print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
 
+#find correlation between features and risk of pre-diabetes and diabetes
+#filter data with only pre-diabetes and diabetes variables
+data_filter = data[data.iloc[:, 0].isin([1, 2])]
+#calculate correlation
+correlation = data_filter.corr().iloc[0, 1:]
+#graph correlation
+plt.figure(figsize=(12, 8))
+correlation.plot(kind = 'bar')
+plt.title('Correlation Between Features and Pre-Diabetes or Diabetes')
+plt.xlabel('Features')
+plt.ylabel('Correlation')
+plt.show()
+
 
 #show x values before and after normalization 
 plt.figure(figsize=(12, 8))
@@ -380,6 +393,7 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
+
 
 plt.tight_layout()
 plt.show()
