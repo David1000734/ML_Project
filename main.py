@@ -97,9 +97,9 @@ def print_Menu():
     user input nor does it do a loop.
     """
     # 0: Diabeties health Indicators
-    print("0:\t\t Diabeties Health Data")
+    print("0:\t\t Diabetes Health Data")
     # 1: Diabeties 50/50 split
-    print("1:\t\t Diabeties 50/50 Split")
+    print("1:\t\t Diabetes 50/50 Split")
     # 2: Diabeties, 0 no diabeties, 1 pre-diabeties, 2 diabetes
     print("2:\t\t Diabetes, Yes, No, or Pre-Diabetes")
 
@@ -125,7 +125,7 @@ def print_Details():
     print("All data recieved is gather via surveys by CDC in 2015. \n\n")
     
     # Diabetes Heath data
-    print("\t\t Diabeties Health Data: "\
+    print("\t\t Diabetes Health Data: "\
           "21 features and 253,680 data points")
     print("The target variable will either be a " + 
           "0 (no diabetes) or 1 (pre-diabetes or diabetes). \n")
@@ -346,6 +346,17 @@ print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 1
 if (debug):
     print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
 
+#find correlation between features and risk of pre-diabetes and diabetes
+#calculate correlation
+correlation = data.corr().iloc[0, 1:]
+#graph correlation
+plt.figure(figsize=(12, 8))
+correlation.plot(kind = 'bar')
+plt.title('Correlation Between Features and Target Variable')
+plt.xlabel('Features')
+plt.ylabel('Correlation')
+plt.show()
+
 
 #show x values before and after normalization 
 plt.figure(figsize=(12, 8))
@@ -380,6 +391,7 @@ plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
+
 
 plt.tight_layout()
 plt.show()
