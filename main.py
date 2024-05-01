@@ -213,7 +213,6 @@ data = data.sample(frac=1)          # shuffle data
 y_actual = data.iloc[:, 0]
 y_actual = y_actual.values      # Convert to numpy
 # No point normalizing the y values in the first place
-
 # Get x values, only normalize x values
 x_values_before = data.iloc[:, 1:]
 #x_values = x_values.values      # Convert to numpy
@@ -393,6 +392,38 @@ plt.ylabel('Loss')
 plt.title('Training and Validation Loss')
 plt.legend()
 
+plt.tight_layout()
+plt.show()
 
+#variables to keep track of totals for actual test values
+y_zeros =0
+y_ones = 0 
+y_twos = 0
+#loop through y_test values to get totals
+for y in y_test:
+    if y == 0:
+        y_zeros +=1
+    elif y == 1: 
+        y_ones +=1
+    elif y ==2:
+        y_twos +=1 
+
+#plot actual vs predicted for healthy and diabetes total 
+#check if dataset is only 0 or 1 
+if y_twos == 0: 
+    #define data for bar graph
+    diabetes_ = [["Actual", y_zeros, y_ones],
+              ["Predicted", zero, one]]
+    #use dataframe for bar chart
+    diabetes_data = pd.DataFrame( diabetes_, columns = ["Target", "Healthy", "Diabetes"])
+    diabetes_data.plot(x= "Target", y= ["Healthy", "Diabetes"], 
+                   kind= "bar", title= "Actual Vs Predicted Values", ylabel="Count")
+#dataset that has 0,1,2 
+else:
+    diabetes_ = [["Actual", y_zeros, y_ones, y_twos],
+              ["Predicted", zero, one, two]]
+    diabetes_data = pd.DataFrame( diabetes_, columns = ["Target" , "Healthy", "Pre-Diabetes", "Diabetes"])
+    diabetes_data.plot(x= "Target", y= ["Healthy", "Pre-Diabetes", "Diabetes"], 
+                   kind= "bar", title= "Actual Vs Predicted Values", ylabel="Count")
 plt.tight_layout()
 plt.show()
