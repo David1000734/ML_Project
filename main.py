@@ -213,7 +213,6 @@ data = data.sample(frac=1)          # shuffle data
 y_actual = data.iloc[:, 0]
 y_actual = y_actual.values      # Convert to numpy
 # No point normalizing the y values in the first place
-print(y_actual)
 # Get x values, only normalize x values
 x_values_before = data.iloc[:, 1:]
 #x_values = x_values.values      # Convert to numpy
