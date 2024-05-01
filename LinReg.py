@@ -13,8 +13,9 @@ def main():
     BaseData = BaseData.reset_index(drop=True)              # reset indices
     BaseData = BaseData.drop(BaseData.index[:92]).reset_index(drop=True)  # drop first sample and reset indices
 
-    print(len(BaseData))
-    print(BaseData)
+    # print(len(BaseData))
+    # print(BaseData)
+    print('\t\t\tRMSE')
 
 
     # CV - manual implementation
@@ -68,12 +69,13 @@ def main():
         RMSE = sqrt(sums[0]/fSize)
 
         #print table results for current fold
-        output = "Fold " + str(i+1) + '\t'
-        for v in range(1,22):
-            temp = "{:.4f}".format(b[v][0])
-            output += temp + '  '
-        output += "{:.4f}".format(RMSE)
-        print(output)
+        if (i+1) % 10 == 0:
+            if i != 99:
+                output = "Fold " + str(i + 1) + '\t\t'
+            else:
+                output = "Fold " + str(i + 1) + '\t'
+            output += "{:.4f}".format(RMSE)
+            print(output)
 
 #run main
 main()
