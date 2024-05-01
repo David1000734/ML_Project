@@ -6,7 +6,6 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
-
 #           Data set breakdown:
 # https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators
 
@@ -18,20 +17,6 @@ import matplotlib.pyplot as plt
 fileName = ["diabetes_binary_health_indicators.csv", 
             "diabetes_binary_5050split_health_indicators_.csv",
             "diabetes_012_health_indicators.csv"]
-
-'''          DEBUG section, remove later
-* Video reference for the code below
-https://www.youtube.com/watch?v=JHWqWIoac2I
-*** Should change parts of this code ***
-
-* Consideration, will K-Folds be neccessary or will 1
-run be sufficient?
-
-* Consider adding a readme that can detail the specifics of each dataset
-and other relevent information. 
-
-* Allow to test (NOT train) model on the other two datasets
-'''
 
 # Create neural network class
 class nnModel(nn.Module):
@@ -123,19 +108,19 @@ def print_Details():
           "sensative information. This information range from gender, " +
           "Smoker, Physical Activity, Age, etc.")
     print("All data recieved is gather via surveys by CDC in 2015. \n\n")
-    
+
     # Diabetes Heath data
     print("\t\t Diabetes Health Data: "\
           "21 features and 253,680 data points")
     print("The target variable will either be a " + 
           "0 (no diabetes) or 1 (pre-diabetes or diabetes). \n")
-    
+
     # 50/50 Diabetes
     print("\t\t Diabetes 50/50 Split: "\
           "21 features and 70,692 data points")
     print("The target variable will either be a " + 
           "0 (no diabetes) or 1 (pre-diabetes or diabetes). \n")
-    
+
     # 0, 1, or 2 Diabetes
     print("\t\t Diabetes, Yes, No, or Pre-Diabetes: "\
           "21 features and 253,680 data points")
@@ -207,7 +192,7 @@ while (True):
 hard_debug = False           # To see each guess
 debug      = True            # Debug var.
 
-data = data.sample(frac=1)          # shuffle data
+data = data.sample(frac = 1)          # shuffle data
 
 # Get y values
 y_actual = data.iloc[:, 0]
@@ -217,11 +202,6 @@ y_actual = y_actual.values      # Convert to numpy
 x_values_before = data.iloc[:, 1:]
 #x_values = x_values.values      # Convert to numpy
 x_values = preprocessing.normalize(x_values_before)
-print("x_val: " + str(x_values.shape))
-
-
-# Keep things consistent for now
-#torch.manual_seed(60)       # Not neccesary. Just a random_seed
 
 # Create out model
 model = nnModel(output = out_val)
@@ -242,12 +222,9 @@ y_train = torch.LongTensor(y_train)
 
 # Find error
 error = nn.CrossEntropyLoss()
-#error = nn.MSELoss()
 
 # Optimizer, using Adam
-# Grad Funct = AddmmBackward0
-opt = torch.optim.Adam(model.parameters(), lr = .01)
-#opt = torch.optim.ASGD(model.parameters(), lr=0.01)
+opt = torch.optim.Adam(model.parameters(), lr = 0.01)
 
 #arrays to keep track of acccuracy values for each iteration 
 train_accuracy_values = []
@@ -257,7 +234,7 @@ val_loss_values = []
 
 # 100 iterations for now. For this dataset, realisticly we will need
 # a much larger epoch
-epoch = 500
+epoch = 100
 for i in range(epoch):
     # Start training model
     y_pred = model.forward(x_train)
@@ -277,7 +254,6 @@ for i in range(epoch):
     # add loss values to an array
     train_loss_values.append(loss)
     val_loss_values.append(val_loss)
-
 
     # Print every 10 iterations
     if (i % 10 == 0):
@@ -308,7 +284,12 @@ y_size = x_test.shape[0]
 
 correct = 0     # Count correct predictions
 
-# Debug Variables
+# Actual test values
+y_zeros =0
+y_ones = 0
+y_twos = 0
+
+# Predicted values Variables
 zero = 0        # How many zeros were predicted
 one = 0         # How many ones were predicted
 two = 0         # How many twos were predicted
@@ -331,19 +312,22 @@ with torch.no_grad():
             correct += 1
 
         # Count what was guessed
-        if (debug):
-            if (y_val.argmax().item() == 0):
-                zero += 1
-            elif (y_val.argmax().item() == 1): 
-                one += 1
-            else:
-                two += 1
+        if (y_val.argmax().item() == 0):
+            zero += 1
+        elif (y_val.argmax().item() == 1): 
+            one += 1
+        else:
+            two += 1
+
+        # Count how many was actually there
+        if y_test[i] == 0:
+            y_zeros +=1
+        elif y_test[i] == 1: 
+            y_ones +=1
+        elif y_test[i] ==2:
+            y_twos +=1 
     # For, END
 print("We got %i correct. Accuracy: %0.2f%%" % (correct, ((correct / y_size) * 100)))
-
-# How many did it guess with and without diabetes
-if (debug):
-    print("Found %i twos, %i ones, and %i zeros." % (two, one, zero))
 
 #find correlation between features and risk of pre-diabetes and diabetes
 #calculate correlation
@@ -356,7 +340,6 @@ plt.xlabel('Features')
 plt.ylabel('Correlation')
 plt.tight_layout()
 plt.show()
-
 
 #show x values before and after normalization 
 plt.figure(figsize=(12, 8))
@@ -395,21 +378,8 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-#variables to keep track of totals for actual test values
-y_zeros =0
-y_ones = 0 
-y_twos = 0
-#loop through y_test values to get totals
-for y in y_test:
-    if y == 0:
-        y_zeros +=1
-    elif y == 1: 
-        y_ones +=1
-    elif y ==2:
-        y_twos +=1 
-
-#plot actual vs predicted for healthy and diabetes total 
-#check if dataset is only 0 or 1 
+# Plot actual vs predicted for healthy and diabetes total 
+# Check if dataset is only 0 or 1 
 if y_twos == 0: 
     #define data for bar graph
     diabetes_ = [["Actual", y_zeros, y_ones],
@@ -425,5 +395,6 @@ else:
     diabetes_data = pd.DataFrame( diabetes_, columns = ["Target" , "Healthy", "Pre-Diabetes", "Diabetes"])
     diabetes_data.plot(x= "Target", y= ["Healthy", "Pre-Diabetes", "Diabetes"], 
                    kind= "bar", title= "Actual Vs Predicted Values", ylabel="Count")
+
 plt.tight_layout()
 plt.show()
