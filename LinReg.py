@@ -68,6 +68,29 @@ def main():
         sums = difsq.sum()
         RMSE = sqrt(sums[0]/fSize)
 
+        # print(PredictY)
+        # print(PredictY[0][0])
+        # print(PredictY[0][1])
+
+        # convert regression values into actual values
+        for num in range(0, len(PredictY)):
+            if PredictY[0][num] > 0.5:
+                PredictY.loc[num, 0] = 1
+            else:
+                PredictY.loc[num, 0] = 0
+
+        #print(PredictY)
+
+        tSum = 0
+        for num in range(0, len(PredictY)):
+            if PredictY[0][num] == testY[0][num]:
+                tSum += 1
+
+        # print(tSum)
+        acc = "Accuracy is: " + str(tSum / len(PredictY)) + '\n'
+        #print(acc)
+
+
         #print table results for current fold
         if (i+1) % 10 == 0:
             if i != 99:
@@ -76,6 +99,7 @@ def main():
                 output = "Fold " + str(i + 1) + '\t'
             output += "{:.4f}".format(RMSE)
             print(output)
+            print(acc)
 
 #run main
 main()
