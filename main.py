@@ -355,6 +355,7 @@ correlation.plot(kind = 'bar')
 plt.title('Correlation Between Features and Target Variable')
 plt.xlabel('Features')
 plt.ylabel('Correlation')
+plt.tight_layout()
 plt.show()
 
 
